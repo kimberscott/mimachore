@@ -8,7 +8,8 @@ import numpy as np
 # The columns with NAMES have unnormalized weights for the
 # corresponding chores. Individual weights for fixed chores are ignored in favor of the fixed weights.
 SPREADSHEET_ID = "1dMaMGtyNROZz_LkZceEja-EcdrzmW-7QvmzNQcmREEM"
-NAMES = ["Kim", "Cody"]
+NAMES = ["Kim", "Cody"]  # Names expected as columns + used in 'Assigned to' column
+DISPLAY_TOP_K = 100  # How many of the top allocations to write to the Google Sheet
 
 # Get weights from GSheet. This requires setting up authentication for end users as described at
 # https://docs.gspread.org/en/latest/oauth2.html
@@ -54,8 +55,7 @@ sums_per_person = [
 max_sum = np.maximum.reduce(sums_per_person)
 
 # What are the indices of the best allocations?
-k = 100
-top_k_ind = np.argpartition(max_sum, k)[0:k]  # Get the top k values, any order
+top_k_ind = np.argpartition(max_sum, DISPLAY_TOP_K)[0:DISPLAY_TOP_K]  # Get the top k values, any order
 top_k_ind = top_k_ind[np.argsort(max_sum[top_k_ind])]  # Then order them within that set
 
 # Get the corresponding best allocations and put in a dataframe for viewing
@@ -72,7 +72,7 @@ best_allocations = best_allocations.rename(columns = {'index':'Chore'})
 # Write back to the Google sheet to display
 print("Writing back to Google sheet")
 try:
-    worksheet = sh.add_worksheet(title="Best allocations", rows=k+1, cols=n_chores+1)
+    worksheet = sh.add_worksheet(title="Best allocations", rows=DISPLAY_TOP_K+1, cols=n_chores+1)
 except:
     worksheet = sh.worksheet("Best allocations")
     worksheet.clear()
